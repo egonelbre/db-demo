@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-
-	_ "github.com/lib/pq"
 )
 
 type Comment struct {
