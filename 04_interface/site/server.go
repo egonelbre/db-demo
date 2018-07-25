@@ -1,12 +1,17 @@
-package main
+package site
 
 import "net/http"
 
-type Server struct {
-	comments *Comments
+type Comments interface {
+	Add(user, comment string) error
+	List() ([]Comment, error)
 }
 
-func NewServer(comments *Comments) *Server {
+type Server struct {
+	comments Comments
+}
+
+func NewServer(comments Comments) *Server {
 	return &Server{
 		comments: comments,
 	}
