@@ -13,19 +13,51 @@ type Comment struct {
 	Text string
 }
 
+func initDatabse(db *sql.DB) error {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS Comments (
+			"User"    TEXT,
+			"Comment" TEXT
+		)
+	`)
+	return err
+}
+
+func addComment(db *sql.DB, user, comment string) error {
+	_, err := db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+	return err
+}
+
+func listComments(db *sql.DB) ([]Comment, error) {
+	rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
+	if err != nil {
+		return nil, err
+	}
+
+	comments := []Comment{}
+	for rows.Next() {
+		var comment Comment
+		err := rows.Scan(&comment.User, &comment.Text)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return comments, nil
+}
+
 func main() {
 	db, err := sql.Open("postgres", "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS Comments (
-			"User"    TEXT,
-			"Comment" TEXT
-		)
-	`)
-	if err != nil {
+	if err := initDatabse(db); err != nil {
 		log.Fatal(err)
 	}
 
@@ -35,25 +67,9 @@ func main() {
 			return
 		}
 
-		rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
+		comments, err := listComments(db)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
-			return
-		}
-
-		comments := []Comment{}
-		for rows.Next() {
-			var comment Comment
-			err := rows.Scan(&comment.User, &comment.Text)
-			if err != nil {
-				ShowErrorPage(w, http.StatusInternalServerError, "Unable to load data", err)
-				return
-			}
-			comments = append(comments, comment)
-		}
-
-		if err := rows.Err(); err != nil {
-			ShowErrorPage(w, http.StatusInternalServerError, "Failed to load data from DB", err)
 			return
 		}
 
@@ -74,7 +90,7 @@ func main() {
 		user := r.Form.Get("user")
 		comment := r.Form.Get("comment")
 
-		_, err = db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+		err := addComment(db, user, comment)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 			return

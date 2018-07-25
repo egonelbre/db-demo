@@ -13,18 +13,59 @@ type Comment struct {
 	Text string
 }
 
-func main() {
-	db, err := sql.Open("postgres", "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
-	if err != nil {
-		log.Fatal(err)
-	}
+type Comments struct {
+	db *sql.DB
+}
 
-	_, err = db.Exec(`
+func NewComments(params string) (*Comments, error) {
+	db, err := sql.Open("postgres", params)
+	if err != nil {
+		return nil, err
+	}
+	repo := &Comments{db}
+	return repo, repo.init()
+}
+
+func (repo *Comments) init() error {
+	_, err := repo.db.Exec(`
 		CREATE TABLE IF NOT EXISTS Comments (
 			"User"    TEXT,
 			"Comment" TEXT
 		)
 	`)
+	return err
+}
+
+func (repo *Comments) Add(user, comment string) error {
+	_, err := repo.db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+	return err
+}
+
+func (repo *Comments) List() ([]Comment, error) {
+	rows, err := repo.db.Query(`SELECT "User", "Comment" FROM Comments`)
+	if err != nil {
+		return nil, err
+	}
+
+	comments := []Comment{}
+	for rows.Next() {
+		var comment Comment
+		err := rows.Scan(&comment.User, &comment.Text)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return comments, nil
+}
+
+func main() {
+	commentsRepo, err := NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,25 +76,9 @@ func main() {
 			return
 		}
 
-		rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
+		comments, err := commentsRepo.List()
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
-			return
-		}
-
-		comments := []Comment{}
-		for rows.Next() {
-			var comment Comment
-			err := rows.Scan(&comment.User, &comment.Text)
-			if err != nil {
-				ShowErrorPage(w, http.StatusInternalServerError, "Unable to load data", err)
-				return
-			}
-			comments = append(comments, comment)
-		}
-
-		if err := rows.Err(); err != nil {
-			ShowErrorPage(w, http.StatusInternalServerError, "Failed to load data from DB", err)
 			return
 		}
 
@@ -74,7 +99,7 @@ func main() {
 		user := r.Form.Get("user")
 		comment := r.Form.Get("comment")
 
-		_, err = db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+		err := commentsRepo.Add(user, comment)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 			return
