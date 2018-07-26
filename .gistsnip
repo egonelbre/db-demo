@@ -54,6 +54,60 @@
             "Path": "03_server\\server#server.go",
             "Name": "server",
             "Content": "type Server struct {\n\tcomments *Comments\n}\n\nfunc (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {\n\tswitch r.URL.Path {\n\tcase \"/\":\n\t\tserver.HandleList(w, r)\n\tcase \"/comment\":\n\t\tserver.HandleAddComment(w, r)\n\tdefault:\n\t\tShowErrorPage(w, http.StatusNotFound, \"Page not found\", nil)\n\t}\n}\n\nfunc (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\tcomments, err := server.comments.List()\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n}"
+        },
+        "04_interface\\directory#directory.txt": {
+            "GistID": "51da4031aedef94697e9f01288c6e976",
+            "GistURL": "https://gist.github.com/51da4031aedef94697e9f01288c6e976",
+            "Line": 1,
+            "File": "04_interface/directory.txt",
+            "Path": "04_interface\\directory#directory.txt",
+            "Name": "directory",
+            "Content": "├── main.go\n├── pgdb\n│   └── comments.go\n└── site\n    ├── comment.go\n    ├── present.go\n    └── server.go"
+        },
+        "04_interface\\site\\server#interface.go": {
+            "GistID": "a1ca07e5cf95230d3bae9e776d986a0a",
+            "GistURL": "https://gist.github.com/a1ca07e5cf95230d3bae9e776d986a0a",
+            "Line": 5,
+            "File": "04_interface/site/server.go",
+            "Path": "04_interface\\site\\server#interface.go",
+            "Name": "interface",
+            "Content": "type Comments interface {\n\tAdd(user, comment string) error\n\tList() ([]Comment, error)\n}\n\ntype Server struct {\n\tcomments Comments\n}\n\nfunc NewServer(comments Comments) *Server {\n\treturn \u0026Server{\n\t\tcomments: comments,\n\t}\n}"
+        },
+        "05_scope\\site\\server#db.go": {
+            "GistID": "57599ecb3252835152efef0ed718b041",
+            "GistURL": "https://gist.github.com/57599ecb3252835152efef0ed718b041",
+            "Line": 5,
+            "File": "05_scope/site/server.go",
+            "Path": "05_scope\\site\\server#db.go",
+            "Name": "db",
+            "Content": "type DB interface {\n\tComments() Comments\n}\n\ntype Comments interface {\n\tAdd(user, comment string) error\n\tList() ([]Comment, error)\n}\n\ntype Server struct {\n\tdb DB\n}\n\nfunc (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\tcomments, err := server.db.Comments().List()\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n}"
+        },
+        "xx_misc\\access-control#accesscontrol.go": {
+            "GistID": "753ed97de5ee8c7c8c3ffd510e90e6d9",
+            "GistURL": "https://gist.github.com/753ed97de5ee8c7c8c3ffd510e90e6d9",
+            "Line": 5,
+            "File": "xx_misc/access-control.go",
+            "Path": "xx_misc\\access-control#accesscontrol.go",
+            "Name": "accesscontrol",
+            "Content": "type DB interface {\n\tAuth() Auth\n\tUsers(id user.ID) Users\n\tComments(id user.ID) Comments\n}\n\ntype Auth interface { ... }\ntype Users interface { ... }\ntype Comments interface { ... }"
+        },
+        "xx_misc\\access-control#accessimpl.go": {
+            "GistID": "0c75d747bac9a2a3ba256b2a22412bbe",
+            "GistURL": "https://gist.github.com/0c75d747bac9a2a3ba256b2a22412bbe",
+            "Line": 17,
+            "File": "xx_misc/access-control.go",
+            "Path": "xx_misc\\access-control#accessimpl.go",
+            "Name": "accessimpl",
+            "Content": "type DB struct {\n\t*sql.DB\n}\n\nfunc (db *DB) Comments(id user.ID) site.Comments { return \u0026Comments{db, id} }\n\ntype Comments struct {\n\tdb   *DB\n\tuser user.ID\n}\n\nfunc (repo *Comments) Add(user, comment string) error {\n\t// check whether repo.user has rights to add a comment\n\t// add comment\n}"
+        },
+        "xx_misc\\access-control#admin.go": {
+            "GistID": "aa84476339825f70bb03f79f64662858",
+            "GistURL": "https://gist.github.com/aa84476339825f70bb03f79f64662858",
+            "Line": 35,
+            "File": "xx_misc/access-control.go",
+            "Path": "xx_misc\\access-control#admin.go",
+            "Name": "admin",
+            "Content": "type DB interface {\n\tAdmin() AdminDB\n\tComments() Comments\n}\n\ntype AdminDB interface { \n\tDB\n\t// only for admins\n\tRunMigrations() error\n\tDropDatabase() error\n}"
         }
     }
 }

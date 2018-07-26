@@ -14,18 +14,23 @@ type Users interface { ... }
 type Comments interface { ... }
 //gistsnip:end:accesscontrol
 
-//gistsnip:start:accesscontrol-implementation
+//gistsnip:start:accessimpl
 type DB struct {
 	*sql.DB
 }
 
-func (db *DB) Comments(id user.ID) site.Comments { return &Comments{db, id}}
+func (db *DB) Comments(id user.ID) site.Comments { return &Comments{db, id} }
 
 type Comments struct {
 	db   *DB
 	user user.ID
 }
-//gistsnip:end:accesscontrol-implementation 
+
+func (repo *Comments) Add(user, comment string) error {
+	// check whether repo.user has rights to add a comment
+	// add comment
+}
+//gistsnip:end:accessimpl 
 
 //gistsnip:start:admin
 type DB interface {
