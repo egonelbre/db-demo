@@ -36,6 +36,24 @@
             "Path": "02_repo\\main#main.go",
             "Name": "main",
             "Content": "commentsRepo, err := NewComments(\"user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable\")\nif err != nil {\n\tlog.Fatal(err)\n}\n\nhttp.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\tcomments, err := commentsRepo.List()\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n})"
+        },
+        "03_server\\main#main.go": {
+            "GistID": "b5fa07c89c742d469de9eb0d98260687",
+            "GistURL": "https://gist.github.com/b5fa07c89c742d469de9eb0d98260687",
+            "Line": 14,
+            "File": "03_server/main.go",
+            "Path": "03_server\\main#main.go",
+            "Name": "main",
+            "Content": "comments, err := NewComments(\"user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable\")\nif err != nil {\n\tlog.Fatal(err)\n}\n\nserver := NewServer(comments)\n\nlog.Println(\"Started listening on :8080\")\nif err := http.ListenAndServe(\":8080\", server); err != nil {\n\tlog.Fatal(err)\n}"
+        },
+        "03_server\\server#server.go": {
+            "GistID": "1e69031db36337ea717159c362430cf1",
+            "GistURL": "https://gist.github.com/1e69031db36337ea717159c362430cf1",
+            "Line": 5,
+            "File": "03_server/server.go",
+            "Path": "03_server\\server#server.go",
+            "Name": "server",
+            "Content": "type Server struct {\n\tcomments *Comments\n}\n\nfunc (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {\n\tswitch r.URL.Path {\n\tcase \"/\":\n\t\tserver.HandleList(w, r)\n\tcase \"/comment\":\n\t\tserver.HandleAddComment(w, r)\n\tdefault:\n\t\tShowErrorPage(w, http.StatusNotFound, \"Page not found\", nil)\n\t}\n}\n\nfunc (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\tcomments, err := server.comments.List()\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n}"
         }
     }
 }
