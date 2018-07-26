@@ -11,6 +11,7 @@ type Comment struct {
 }
 
 func main() {
+	//gistsnip:start:main
 	commentsRepo, err := NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
@@ -30,6 +31,7 @@ func main() {
 
 		ShowCommentsPage(w, comments)
 	})
+	//gistsnip:end:main
 
 	http.HandleFunc("/comment", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

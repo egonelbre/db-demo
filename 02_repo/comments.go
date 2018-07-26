@@ -6,9 +6,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+//gistsnip:start:comments
 type Comments struct {
 	db *sql.DB
 }
+
+//gistsnip:end:comments
 
 func NewComments(params string) (*Comments, error) {
 	db, err := sql.Open("postgres", params)
@@ -34,6 +37,7 @@ func (repo *Comments) Add(user, comment string) error {
 	return err
 }
 
+//gistsnip:start:comments
 func (repo *Comments) List() ([]Comment, error) {
 	rows, err := repo.db.Query(`SELECT "User", "Comment" FROM Comments`)
 	if err != nil {
@@ -56,3 +60,5 @@ func (repo *Comments) List() ([]Comment, error) {
 
 	return comments, nil
 }
+
+//gistsnip:end:comments

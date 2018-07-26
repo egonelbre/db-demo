@@ -11,6 +11,7 @@ type Comment struct {
 }
 
 func main() {
+	//gistsnip:start:main
 	comments, err := NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
@@ -22,4 +23,5 @@ func main() {
 	if err := http.ListenAndServe(":8080", server); err != nil {
 		log.Fatal(err)
 	}
+	//gistsnip:end:main
 }

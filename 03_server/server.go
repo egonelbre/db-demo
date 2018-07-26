@@ -2,9 +2,12 @@ package main
 
 import "net/http"
 
+//gistsnip:start:server
 type Server struct {
 	comments *Comments
 }
+
+//gistsnip:end:server
 
 func NewServer(comments *Comments) *Server {
 	return &Server{
@@ -12,6 +15,7 @@ func NewServer(comments *Comments) *Server {
 	}
 }
 
+//gistsnip:start:server
 func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
@@ -37,6 +41,8 @@ func (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {
 
 	ShowCommentsPage(w, comments)
 }
+
+//gistsnip:end:server
 
 func (server *Server) HandleAddComment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {

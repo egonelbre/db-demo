@@ -28,6 +28,7 @@ func addComment(db *sql.DB, user, comment string) error {
 	return err
 }
 
+//gistsnip:start:list
 func listComments(db *sql.DB) ([]Comment, error) {
 	rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
 	if err != nil {
@@ -75,6 +76,7 @@ func main() {
 
 		ShowCommentsPage(w, comments)
 	})
+	//gistsnip:end:list
 
 	http.HandleFunc("/comment", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -103,4 +105,7 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
+	//gistsnip:start:list
 }
+
+//gistsnip:end:list

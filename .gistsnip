@@ -1,0 +1,41 @@
+{
+    "Description": "",
+    "Snippets": {
+        "00_yolo\\main#list.go": {
+            "GistID": "a2a3c3b84b15326e61b5696995d24891",
+            "GistURL": "https://gist.github.com/a2a3c3b84b15326e61b5696995d24891",
+            "Line": 17,
+            "File": "00_yolo/main.go",
+            "Path": "00_yolo\\main#list.go",
+            "Name": "list",
+            "Content": "db, err := sql.Open(\"postgres\", \"user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable\")\nif err != nil {\n\tlog.Fatal(err)\n}\n\n_, err = db.Exec(`\n\tCREATE TABLE IF NOT EXISTS Comments (\n\t\t\"User\"    TEXT,\n\t\t\"Comment\" TEXT\n\t)\n`)\nif err != nil {\n\tlog.Fatal(err)\n}\n\nhttp.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\trows, err := db.Query(`SELECT \"User\", \"Comment\" FROM Comments`)\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tcomments := []Comment{}\n\tfor rows.Next() {\n\t\tvar comment Comment\n\t\terr := rows.Scan(\u0026comment.User, \u0026comment.Text)\n\t\tif err != nil {\n\t\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to load data\", err)\n\t\t\treturn\n\t\t}\n\t\tcomments = append(comments, comment)\n\t}\n\n\tif err := rows.Err(); err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Failed to load data from DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n})"
+        },
+        "01_funcs\\main#list.go": {
+            "GistID": "ae9d8bc2d2e6a21e1b5a249b9a21e710",
+            "GistURL": "https://gist.github.com/ae9d8bc2d2e6a21e1b5a249b9a21e710",
+            "Line": 31,
+            "File": "01_funcs/main.go",
+            "Path": "01_funcs\\main#list.go",
+            "Name": "list",
+            "Content": "func listComments(db *sql.DB) ([]Comment, error) {\n\trows, err := db.Query(`SELECT \"User\", \"Comment\" FROM Comments`)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tcomments := []Comment{}\n\tfor rows.Next() {\n\t\tvar comment Comment\n\t\terr := rows.Scan(\u0026comment.User, \u0026comment.Text)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tcomments = append(comments, comment)\n\t}\n\n\tif err := rows.Err(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn comments, nil\n}\n\nfunc main() {\n\tdb, err := sql.Open(\"postgres\", \"user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable\")\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\n\tif err := initDatabse(db); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\n\thttp.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.Method != http.MethodGet {\n\t\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\t\treturn\n\t\t}\n\n\t\tcomments, err := listComments(db)\n\t\tif err != nil {\n\t\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\t\treturn\n\t\t}\n\n\t\tShowCommentsPage(w, comments)\n\t})\n\n}"
+        },
+        "02_repo\\comments#comments.go": {
+            "GistID": "76fab89b4e1d8a96a6c64939f9b42b9b",
+            "GistURL": "https://gist.github.com/76fab89b4e1d8a96a6c64939f9b42b9b",
+            "Line": 9,
+            "File": "02_repo/comments.go",
+            "Path": "02_repo\\comments#comments.go",
+            "Name": "comments",
+            "Content": "type Comments struct {\n\tdb *sql.DB\n}\n\nfunc (repo *Comments) List() ([]Comment, error) {\n\trows, err := repo.db.Query(`SELECT \"User\", \"Comment\" FROM Comments`)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tcomments := []Comment{}\n\tfor rows.Next() {\n\t\tvar comment Comment\n\t\terr := rows.Scan(\u0026comment.User, \u0026comment.Text)\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tcomments = append(comments, comment)\n\t}\n\n\tif err := rows.Err(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn comments, nil\n}"
+        },
+        "02_repo\\main#main.go": {
+            "GistID": "1dfa6c2de42e9039eb09d2782f2fe687",
+            "GistURL": "https://gist.github.com/1dfa6c2de42e9039eb09d2782f2fe687",
+            "Line": 14,
+            "File": "02_repo/main.go",
+            "Path": "02_repo\\main#main.go",
+            "Name": "main",
+            "Content": "commentsRepo, err := NewComments(\"user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable\")\nif err != nil {\n\tlog.Fatal(err)\n}\n\nhttp.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n\tif r.Method != http.MethodGet {\n\t\tShowErrorPage(w, http.StatusMethodNotAllowed, \"Invalid method\", nil)\n\t\treturn\n\t}\n\n\tcomments, err := commentsRepo.List()\n\tif err != nil {\n\t\tShowErrorPage(w, http.StatusInternalServerError, \"Unable to access DB\", err)\n\t\treturn\n\t}\n\n\tShowCommentsPage(w, comments)\n})"
+        }
+    }
+}
