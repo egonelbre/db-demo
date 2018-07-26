@@ -2,6 +2,7 @@ package site
 
 import "net/http"
 
+//gistsnip:start:interface
 type Comments interface {
 	Add(user, comment string) error
 	List() ([]Comment, error)
@@ -16,6 +17,8 @@ func NewServer(comments Comments) *Server {
 		comments: comments,
 	}
 }
+
+//gistsnip:end:interface
 
 func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {

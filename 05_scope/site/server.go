@@ -2,6 +2,7 @@ package site
 
 import "net/http"
 
+//gistsnip:start:db
 type DB interface {
 	Comments() Comments
 }
@@ -14,6 +15,8 @@ type Comments interface {
 type Server struct {
 	db DB
 }
+
+//gistsnip:end:db
 
 func NewServer(db DB) *Server {
 	return &Server{
@@ -32,6 +35,7 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//gistsnip:start:db
 func (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
@@ -46,6 +50,8 @@ func (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {
 
 	ShowCommentsPage(w, comments)
 }
+
+//gistsnip:end:db
 
 func (server *Server) HandleAddComment(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
