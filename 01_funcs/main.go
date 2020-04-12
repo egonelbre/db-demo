@@ -34,6 +34,7 @@ func listComments(db *sql.DB) ([]Comment, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	comments := []Comment{}
 	for rows.Next() {

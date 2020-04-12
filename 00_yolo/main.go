@@ -41,6 +41,7 @@ func main() {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
 			return
 		}
+		defer rows.Close()
 
 		comments := []Comment{}
 		for rows.Next() {

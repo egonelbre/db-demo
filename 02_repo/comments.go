@@ -43,6 +43,7 @@ func (repo *Comments) List() ([]Comment, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	comments := []Comment{}
 	for rows.Next() {
