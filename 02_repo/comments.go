@@ -22,6 +22,10 @@ func NewComments(params string) (*Comments, error) {
 	return repo, repo.init()
 }
 
+func (repo *Comments) Close() error {
+	return repo.db.Close()
+}
+
 func (repo *Comments) init() error {
 	_, err := repo.db.Exec(`
 		CREATE TABLE IF NOT EXISTS Comments (

@@ -19,6 +19,10 @@ func New(params string) (*DB, error) {
 	return rdb, rdb.init()
 }
 
+func (db *DB) Close() error {
+	return db.DB.Close()
+}
+
 func (db *DB) init() error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Comments (

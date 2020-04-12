@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer comments.Close()
 
 	server := site.NewServer(comments)
 

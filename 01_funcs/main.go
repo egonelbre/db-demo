@@ -58,6 +58,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	if err := initDatabse(db); err != nil {
 		log.Fatal(err)
