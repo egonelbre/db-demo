@@ -4,8 +4,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-
-	_ "github.com/lib/pq"
 )
 
 func ShowCommentsPage(w http.ResponseWriter, comments []Comment) {

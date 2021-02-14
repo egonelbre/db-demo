@@ -28,12 +28,14 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if r.Method != http.MethodGet {
 		ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 		return
 	}
 
-	comments, err := server.comments.List()
+	comments, err := server.comments.List(ctx)
 	if err != nil {
 		ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
 		return
@@ -45,6 +47,8 @@ func (server *Server) HandleList(w http.ResponseWriter, r *http.Request) {
 //gistsnip:end:server
 
 func (server *Server) HandleAddComment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if r.Method != http.MethodPost {
 		ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 		return
@@ -58,7 +62,7 @@ func (server *Server) HandleAddComment(w http.ResponseWriter, r *http.Request) {
 	user := r.Form.Get("user")
 	comment := r.Form.Get("comment")
 
-	err := server.comments.Add(user, comment)
+	err := server.comments.Add(ctx, user, comment)
 	if err != nil {
 		ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 		return

@@ -1,17 +1,18 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/egonelbre/db-demo/04_interface/pgdb"
 	"github.com/egonelbre/db-demo/04_interface/site"
-
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	comments, err := pgdb.NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
+	ctx := context.Background()
+
+	comments, err := pgdb.NewComments(ctx, "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"net/http"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Comment struct {
@@ -14,14 +14,16 @@ type Comment struct {
 }
 
 func main() {
+	ctx := context.Background()
+
 	//gistsnip:start:list
-	db, err := sql.Open("postgres", "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
+	db, err := pgxpool.Connect(ctx, "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`
+	_, err = db.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS Comments (
 			"User"    TEXT,
 			"Comment" TEXT
@@ -32,12 +34,14 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		if r.Method != http.MethodGet {
 			ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 			return
 		}
 
-		rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
+		rows, err := db.Query(ctx, `SELECT "User", "Comment" FROM Comments`)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
 			return
@@ -65,6 +69,8 @@ func main() {
 	//gistsnip:end:list
 
 	http.HandleFunc("/comment", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		if r.Method != http.MethodPost {
 			ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 			return
@@ -78,7 +84,7 @@ func main() {
 		user := r.Form.Get("user")
 		comment := r.Form.Get("comment")
 
-		_, err = db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+		_, err = db.Exec(ctx, `INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 			return

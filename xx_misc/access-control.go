@@ -26,7 +26,7 @@ type Comments struct {
 	user user.ID
 }
 
-func (repo *Comments) Add(user, comment string) error {
+func (repo *Comments) Add(ctx context.Context, user, comment string) error {
 	// check whether repo.user has rights to add a comment
 	// add comment
 }

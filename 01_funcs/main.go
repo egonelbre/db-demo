@@ -1,11 +1,11 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"net/http"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Comment struct {
@@ -13,8 +13,8 @@ type Comment struct {
 	Text string
 }
 
-func initDatabse(db *sql.DB) error {
-	_, err := db.Exec(`
+func initDatabse(ctx context.Context, db *pgxpool.Pool) error {
+	_, err := db.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS Comments (
 			"User"    TEXT,
 			"Comment" TEXT
@@ -23,14 +23,14 @@ func initDatabse(db *sql.DB) error {
 	return err
 }
 
-func addComment(db *sql.DB, user, comment string) error {
-	_, err := db.Exec(`INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
+func addComment(ctx context.Context, db *pgxpool.Pool, user, comment string) error {
+	_, err := db.Exec(ctx, `INSERT INTO Comments ("User", "Comment") VALUES ($1, $2)`, user, comment)
 	return err
 }
 
 //gistsnip:start:list
-func listComments(db *sql.DB) ([]Comment, error) {
-	rows, err := db.Query(`SELECT "User", "Comment" FROM Comments`)
+func listComments(ctx context.Context, db *pgxpool.Pool) ([]Comment, error) {
+	rows, err := db.Query(ctx, `SELECT "User", "Comment" FROM Comments`)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,15 @@ func listComments(db *sql.DB) ([]Comment, error) {
 }
 
 func main() {
-	db, err := sql.Open("postgres", "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
+	ctx := context.Background()
+
+	db, err := pgxpool.Connect(ctx, "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	if err := initDatabse(db); err != nil {
+	if err := initDatabse(ctx, db); err != nil {
 		log.Fatal(err)
 	}
 
@@ -70,7 +72,7 @@ func main() {
 			return
 		}
 
-		comments, err := listComments(db)
+		comments, err := listComments(ctx, db)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
 			return
@@ -94,7 +96,7 @@ func main() {
 		user := r.Form.Get("user")
 		comment := r.Form.Get("comment")
 
-		err := addComment(db, user, comment)
+		err := addComment(ctx, db, user, comment)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 			return

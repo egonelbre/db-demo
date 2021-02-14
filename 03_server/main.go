@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 )
@@ -11,8 +12,10 @@ type Comment struct {
 }
 
 func main() {
+	ctx := context.Background()
+
 	//gistsnip:start:main
-	comments, err := NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
+	comments, err := NewComments(ctx, "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}

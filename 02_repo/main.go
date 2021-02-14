@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 )
@@ -11,20 +12,24 @@ type Comment struct {
 }
 
 func main() {
+	ctx := context.Background()
+
 	//gistsnip:start:main
-	commentsRepo, err := NewComments("user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
+	commentsRepo, err := NewComments(ctx, "user=dbdemo password=dbdemo dbname=dbdemo sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer commentsRepo.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		if r.Method != http.MethodGet {
 			ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 			return
 		}
 
-		comments, err := commentsRepo.List()
+		comments, err := commentsRepo.List(ctx)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to access DB", err)
 			return
@@ -35,6 +40,8 @@ func main() {
 	//gistsnip:end:main
 
 	http.HandleFunc("/comment", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		if r.Method != http.MethodPost {
 			ShowErrorPage(w, http.StatusMethodNotAllowed, "Invalid method", nil)
 			return
@@ -48,7 +55,7 @@ func main() {
 		user := r.Form.Get("user")
 		comment := r.Form.Get("comment")
 
-		err := commentsRepo.Add(user, comment)
+		err := commentsRepo.Add(ctx, user, comment)
 		if err != nil {
 			ShowErrorPage(w, http.StatusInternalServerError, "Unable to add data", err)
 			return
